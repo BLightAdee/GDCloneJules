@@ -30,7 +30,7 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
                     if not game_over:
-                        player.jump()
+                        player.buffer_jump()
                     else:
                         player, level, game_over, victory, score = reset_game()
                 if event.key == pygame.K_r:
@@ -39,7 +39,7 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     if not game_over:
-                        player.jump()
+                        player.buffer_jump()
                     else:
                         player, level, game_over, victory, score = reset_game()
         
@@ -67,7 +67,7 @@ def main():
                         game_over = True
                     else:
                         # Vertical collision
-                        if player.velocity_y > 0 and player.rect.bottom <= obstacle.rect.top + 20: 
+                        if player.velocity_y > 0:
                             # Falling down onto block
                             player.rect.bottom = obstacle.rect.top
                             player.y = player.rect.y
@@ -79,8 +79,6 @@ def main():
                             player.rect.top = obstacle.rect.bottom
                             player.y = player.rect.y
                             player.velocity_y = 0
-                        else:
-                             pass
 
         
         # Draw
