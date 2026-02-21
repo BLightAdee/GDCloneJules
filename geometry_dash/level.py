@@ -1,4 +1,5 @@
 import pygame
+import random
 from .constants import SCREEN_HEIGHT, SCREEN_WIDTH, BLUE, WHITE
 
 class Obstacle(pygame.sprite.Sprite):
@@ -27,36 +28,71 @@ class Level:
     def __init__(self):
         self.obstacles = pygame.sprite.Group()
         self.ground_level = SCREEN_HEIGHT - 100
-        self.generate_level()
+        self.next_x = SCREEN_WIDTH + 200 # Start generating off-screen
+        self.generate_chunk(self.next_x)
 
-    def generate_level(self):
-        # Create a simple level layout
-        # Blocks and spikes
-        import random
+    def generate_chunk(self, start_x):
+        # Generate a pattern of obstacles
+        patterns = [
+            'single_spike',
+            'double_spike',
+            'triple_spike',
+            'block',
+            'block_jump',
+            'spike_gap_spike'
+        ]
         
-        current_x = SCREEN_WIDTH + 200 # Start generating off-screen
+        pattern = random.choice(patterns)
+        current_x = start_x
         
-        for _ in range(20): # Generate 20 obstacles for now
-            obstacle_type = random.choice(['block', 'spike', 'spike'])
+        if pattern == 'single_spike':
+            self.add_spike(current_x)
+            current_x += 300
+        elif pattern == 'double_spike':
+            self.add_spike(current_x)
+            self.add_spike(current_x + 40)
+            current_x += 350
+        elif pattern == 'triple_spike':
+            self.add_spike(current_x)
+            self.add_spike(current_x + 40)
+            self.add_spike(current_x + 80)
+            current_x += 400
+        elif pattern == 'block':
+            self.add_block(current_x)
+            current_x += 300
+        elif pattern == 'block_jump':
+            self.add_block(current_x)
+            self.add_spike(current_x + 200)
+            current_x += 400
+        elif pattern == 'spike_gap_spike':
+            self.add_spike(current_x)
+            self.add_spike(current_x + 200)
+            current_x += 300
             
-            if obstacle_type == 'block':
-                width = 50
-                height = 50
-                y = self.ground_level - height
-                obstacle = Obstacle(current_x, y, width, height, 'block')
-                self.obstacles.add(obstacle)
-                current_x += 200 # Gap after block
-            elif obstacle_type == 'spike':
-                width = 40
-                height = 40
-                y = self.ground_level - height
-                obstacle = Obstacle(current_x, y, width, height, 'spike')
-                self.obstacles.add(obstacle)
-                current_x += 150 # Gap after spike
+        self.next_x = current_x
+
+    def add_spike(self, x):
+        width = 40
+        height = 40
+        y = self.ground_level - height
+        obstacle = Obstacle(x, y, width, height, 'spike')
+        self.obstacles.add(obstacle)
+
+    def add_block(self, x):
+        width = 50
+        height = 50
+        y = self.ground_level - height
+        obstacle = Obstacle(x, y, width, height, 'block')
+        self.obstacles.add(obstacle)
 
     def update(self, speed):
         self.obstacles.update(speed)
-        
+        self.next_x -= speed # Update the generation cursor relative to screen
+
+        # Generate new chunks if needed
+        if self.next_x < SCREEN_WIDTH + 200:
+             self.generate_chunk(self.next_x)
+
         # Remove obstacles that have gone off screen
         for obstacle in self.obstacles:
             if obstacle.rect.right < 0:
